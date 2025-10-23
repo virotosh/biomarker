@@ -3,14 +3,36 @@ import { Link, useParams } from "react-router-dom";
 import ReactPlayer from "react-player";
 import { Typography, Box, Card, CardContent, Stack } from "@mui/material";
 import CheckCircleIcon from "@mui/icons-material/CheckCircle";
+import axios from "axios"
 
 const VideoDetails = () => {
     const playerRef = useRef();
-    const [played, setPlayed] = useState(0);
+    const [index, setIndex] = useState(0);
+    const [physio, setPhysio] = useState({});
+
+    const getData = async(e) => {
+      try {
+        const res = await axios.post(
+            "http://localhost:5000/api/physio",
+            { index: e }
+        );
+        if (res.status === 200) {
+          setPhysio(res.data)
+          console.log(res.data);
+        }
+      } catch (err) {
+          console.error(err);
+      }
+    }
+    useEffect(() => {
+      getData(0);
+    }, []);
     const handleTimeUpdate = (e) => {
-        setPlayed(playerRef.current.api.getCurrentTime());
-        //console.log(playerRef.current.api.getCurrentTime());
-        //console.log('onProgress');
+        var _index = parseInt(playerRef.current.api.getCurrentTime()).toLocaleString();
+        if (_index!=index){
+          setIndex(_index);
+          getData(_index);
+        }
       };
   return (
     <Box minHeight="95vh">
@@ -20,7 +42,7 @@ const VideoDetails = () => {
             <ReactPlayer
                 ref={playerRef}
                 onTimeUpdate={handleTimeUpdate}
-                src="https://www.youtube.com/watch?v=TKQpky1hEw0"
+                src="https://www.youtube.com/watch?v=BbExfrFnjYg"
                 className="react-player"
                 controls
             />
@@ -40,12 +62,11 @@ const VideoDetails = () => {
                 maxWidth: "358px",
                 }}>
                 <CardContent sx={{ backgroundColor: "#1E1E1E", height: "320px" }}>
-                    <Typography fontWeight="bold" color="#FFF">
-                        {played}
-                    </Typography>
-                    <Typography fontWeight="bold" color="#FFF">
-                        bbb
-                    </Typography>
+                    {Object.entries(physio).map(([key, value]) => (
+                      <Typography fontWeight="bold" color="#FFF">
+                        {key} : {value}
+                      </Typography>
+                    ))}
               </CardContent>
             </Card>
         </Box>
