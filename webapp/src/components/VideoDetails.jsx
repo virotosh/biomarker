@@ -42,7 +42,7 @@ const VideoDetails = () => {
             <ReactPlayer
                 ref={playerRef}
                 onTimeUpdate={handleTimeUpdate}
-                src="https://www.youtube.com/watch?v=BbExfrFnjYg"
+                src="https://www.youtube.com/watch?v=BNOrliG3e-Y"
                 className="react-player"
                 controls
             />
@@ -63,7 +63,7 @@ const VideoDetails = () => {
                 }}>
                 <CardContent sx={{ backgroundColor: "#1E1E1E", height: "320px" }}>
                     {Object.entries(physio).map(([key, value]) => (
-                      <Typography fontWeight="bold" color="#FFF">
+                      <Typography fontWeight="bold" color={value>0.6? (value>0.8 ? "#F84F31":"#FF980E"):"#069C56"}>
                         {key} : {value}
                       </Typography>
                     ))}
