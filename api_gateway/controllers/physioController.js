@@ -1,6 +1,6 @@
 const {fakeMarkers} = require("./fakeData");
-var hrs = [0];
-var edas = [0]
+var hrs = Array(512).fill(0);
+var edas = Array(512).fill(0)
 
 const axios = require('axios');
 
@@ -20,12 +20,12 @@ const getBioMarker = async (req, res) => {
           })
           .then(res1 => {
             const testData = res1.data;
-            const eda = testData.data.map(pair => pair[0]/10000);
+            //const eda = testData.data.map(pair => pair[0]/10000);
             const hr = testData.data.map(pair => pair[1]);
             hrs = hrs.concat(hr);
             hrs = hrs.slice(-512);
-            edas = edas.concat(eda);
-            edas = edas.slice(-512);
+            //edas = edas.concat(eda);
+            //edas = edas.slice(-512);
             const params = {
                 "empatica": [
                   [Array(512).fill(0), Array(512).fill(0), Array(512).fill(0), Array(512).fill(0), hrs, edas, Array(512).fill(0)]
