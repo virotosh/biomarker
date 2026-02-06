@@ -31,7 +31,7 @@ const getBioMarker = async (req, res) => {
                   [Array(512).fill(0), Array(512).fill(0), Array(512).fill(0), Array(512).fill(0), hrs, edas, Array(512).fill(0)]
                 ]
               };
-            console.log(params['empatica'][0][5]);
+            //console.log(params['empatica'][0][5]);
             axios.post(url, params)
             .then(response => {
                 // Replace all single quotes with double quotes
