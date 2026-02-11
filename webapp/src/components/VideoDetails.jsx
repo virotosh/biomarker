@@ -1,8 +1,6 @@
-import React, { useEffect, useState, useRef, useCallback } from "react";
-import ReactPlayer from "react-player";
+import React, { useEffect, useState } from "react";
 import { Typography, Box, Card, CardContent, Stack } from "@mui/material";
-import axios from "axios"
-
+import axios from "axios";
 import { Line } from "react-chartjs-2";
 import {
   Chart,
@@ -27,99 +25,144 @@ Chart.register(
 );
 
 const VideoDetails = () => {
-    const playerRef = useRef();
-    const [index, setIndex] = useState(0);
-    const [physio, setPhysio] = useState({});
-    const [physiotmp, setPhysiotmp] = useState(Array.from({ length: 50 }, () => ({ stress: 0.0, mental_workload: 0.0 })));
-    const getData = async(e) => {
+  const [index, setIndex] = useState(0);
+  const [physio, setPhysio] = useState({});
+  const [physiotmp, setPhysiotmp] = useState(Array.from({ length: 50 }, () => ({ stress: 0.0, mental_workload: 0.0 })));
+  const [frameUrl, setFrameUrl] = useState(""); // store object URL for img
+
+  // Poll physio as before (no change)
+  const getData = async (e) => {
+    try {
+      const res = await axios.post(
+        "http://193.166.24.186:5000/api/physio",
+        { index: e }
+      );
+      if (res.status === 200) {
+        setPhysio(res.data);
+        setPhysiotmp(prev => {
+          const updated = [...prev, res.data];
+          return updated.slice(-50);
+        });
+        // console.log(res.data);
+      }
+    } catch (err) {
+      console.error(err);
+    }
+  }
+
+  useEffect(() => {
+    getData(0);
+  }, []);
+
+  // 1s polling for frame
+  useEffect(() => {
+    let isMounted = true;
+    let timer;
+    let lastObjectUrl = null;
+
+    const fetchFrame = async () => {
       try {
-        const res = await axios.post(
-            "http://localhost:5000/api/physio",
-            { index: e }
-        );
-        if (res.status === 200) {
-          setPhysio(res.data)
-          setPhysiotmp(prev => {
-            const updated = [...prev, res.data];
-            return updated.slice(-50);
-          });
-          console.log(res.data);
+        const res = await axios.get("http://172.22.8.62:8000/stream/video_display1/frame", {
+          responseType: "blob",
+          headers: {
+            // Optionally, you can add cache busting:
+            // 'Cache-Control': 'no-cache'
+          },
+        });
+        if(!isMounted) return;
+        // Create blob URL
+        const objectUrl = URL.createObjectURL(res.data);
+
+        setFrameUrl(objectUrl);
+
+        // Clean up old blob url
+        if (lastObjectUrl) {
+          URL.revokeObjectURL(lastObjectUrl);
         }
+        lastObjectUrl = objectUrl;
       } catch (err) {
-          console.error(err);
+        // Could add retry logic here if needed
+        // Optionally clear image on error:
+        setFrameUrl("");
+        console.error("Frame fetch error", err);
+      }
+      timer = setTimeout(fetchFrame, 1000);
+    };
+    fetchFrame();
+
+    return () => {
+      isMounted = false;
+      if (timer) clearTimeout(timer);
+      if (lastObjectUrl) URL.revokeObjectURL(lastObjectUrl);
+    };
+  }, []);
+
+  const chartData = {
+    labels: physiotmp.map((_, i) => i),
+    datasets: [
+      {
+        label: "Stress",
+        data: physiotmp.map(item => item.stress),
+        borderColor: "#FFD700",
+        backgroundColor: "rgba(255, 215, 0, 0.3)",
+        tension: 0.3,
+        pointRadius: 0,
+        fill: false
+      },
+      {
+        label: "Mental Workload",
+        data: physiotmp.map(item => item.mental_workload),
+        borderColor: "#169C6B",
+        backgroundColor: "#169C6B88",
+        tension: 0.3,
+        pointRadius: 0,
+        fill: false
+      }
+    ]
+  };
+
+  const chartOptions = {
+    responsive: true,
+    plugins: {
+      legend: { display: true, labels: { color: "#C9C9C9" } },
+      tooltip: { mode: "index", intersect: false },
+    },
+    scales: {
+      x: {
+        grid: { display: false, drawBorder: false },
+        title: { display: false },
+        ticks: { display: false }
+      },
+      y: {
+        min: 0,
+        max: 1,
+        beginAtZero: true,
+        title: {
+          display: true,
+          text: "Probability",
+          color: "#C9C9C9"
+        },
+        ticks: { color: "#C9C9C9" }
       }
     }
-    useEffect(() => {
-      getData(0);
-    }, []);
-    const handleTimeUpdate = (e) => {
-        var _index = parseInt(playerRef.current.api.getCurrentTime()).toLocaleString();
-        if (_index!=index){
-          setIndex(_index);
-          getData(_index);
-        }
-      };
-    
-      const chartData = {
-        labels: physiotmp.map((_, i) => i),
-        datasets: [
-          {
-            label: "Stress",
-            data: physiotmp.map(item => item.stress),
-            borderColor: "#FFD700",
-            backgroundColor: "rgba(255, 215, 0, 0.3)", // Gold, semi-transparent fill if you set fill: true
-            tension: 0.3,
-            pointRadius: 0,
-            fill: false
-          },
-          {
-            label: "Mental Workload",
-            data: physiotmp.map(item => item.mental_workload),
-            borderColor: "#169C6B",
-            backgroundColor: "#169C6B88",
-            tension: 0.3,
-            pointRadius: 0,
-            fill: false
-          }
-        ]
-      };
-    
-      const chartOptions = {
-        responsive: true,
-        plugins: {
-          legend: { display: true, labels: { color: "#C9C9C9" } },
-          tooltip: { mode: "index", intersect: false },
-        },
-        scales: {
-          x: {
-            grid: { display: false, drawBorder: false },
-            title: { display: false },
-            ticks: { display: false }
-          },
-          y: {
-            min: 0,
-            max: 1,
-            beginAtZero: true,
-            title: {
-              display: true,
-              text: "Probability",
-              color: "#C9C9C9"
-            },
-            ticks: { color: "#C9C9C9" }
-          }
-        }
-      };
+  };
+
   return (
     <Box minHeight="95vh">
       <Stack direction="row">
         <Box flex={1}>
           <Box sx={{ width: "100%", position: "sticky", top: "86px" }}>
-            <ReactPlayer
-                ref={playerRef}
-                onTimeUpdate={handleTimeUpdate}
-                src="https://www.youtube.com/watch?v=BNOrliG3e-Y"
-                className="react-player"
-                controls
+            {/* Replace ReactPlayer with updating img */}
+            <img
+              src={frameUrl}
+              alt="Live Frame"
+              style={{
+                width: "100%",
+                maxWidth: "720px", // Adjust as needed
+                minHeight: "400px",
+                background: "#111",
+                display: "block",
+              }}
             />
             <Box
                 sx={{
