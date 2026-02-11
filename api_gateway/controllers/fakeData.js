@@ -1,4 +1,4 @@
-export const fakeMarkers = [
+const fakeMarkers = [
     {"stress": 0.345, "mental_workload": 0.021, "attention": 0.421, "drowsiness": 0.021},
     {"stress": 0.345, "mental_workload": 0.016, "attention": 0.413, "drowsiness": 0.042},
     {"stress": 0.381, "mental_workload": 0.029, "attention": 0.574, "drowsiness": 0.093},
@@ -883,3 +883,5 @@ export const fakeMarkers = [
     {"stress": 0.688, "mental_workload": 0.750, "attention": 0.348, "drowsiness": 0.022},
     {"stress": 0.120, "mental_workload": 0.106, "attention": 0.547, "drowsiness": 0.086},
 ]
+
+module.exports = {fakeMarkers}
