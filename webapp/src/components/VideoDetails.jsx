@@ -34,7 +34,7 @@ const VideoDetails = () => {
   const getData = async (e) => {
     try {
       const res = await axios.post(
-        "http://192.168.1.157:5000/api/physio",
+        "http://localhost:5000/api/physio",
         { index: e }
       );
       if (res.status === 200) {
