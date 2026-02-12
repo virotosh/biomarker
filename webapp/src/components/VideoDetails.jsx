@@ -88,7 +88,7 @@ const VideoDetails = () => {
         setFrameUrl("");
         console.error("Frame fetch error", err);
       }
-      timer = setTimeout(fetchFrame, 200);
+      timer = setTimeout(fetchFrame, 100);
     };
     fetchFrame();
 
