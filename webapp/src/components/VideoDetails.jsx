@@ -80,6 +80,8 @@ const VideoDetails = () => {
           URL.revokeObjectURL(lastObjectUrl);
         }
         lastObjectUrl = objectUrl;
+
+        getData(0);
       } catch (err) {
         // Could add retry logic here if needed
         // Optionally clear image on error:

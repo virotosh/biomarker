@@ -51,8 +51,8 @@ const getBioMarker = async (req, res) => {
                 // Replace all single quotes with double quotes
                 resData = response.data.replace(/"/g, '').replace(/'/g, '"');
                 const d = JSON.parse(resData);
-                //res.status(200).json(d);
-                res.status(200).json({'stress':fakeMarkers[index]['stress'],'mental_workload':fakeMarkers[index]['mental_workload']});
+                res.status(200).json(d);
+                //res.status(200).json({'stress':fakeMarkers[index]['stress'],'mental_workload':fakeMarkers[index]['mental_workload']});
             })
             .catch(error => {
                 console.error('Error:', error);
