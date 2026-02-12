@@ -34,7 +34,7 @@ const VideoDetails = () => {
   const getData = async (e) => {
     try {
       const res = await axios.post(
-        "http://193.166.24.186:5000/api/physio",
+        "http://192.168.1.157:5000/api/physio",
         { index: e }
       );
       if (res.status === 200) {
@@ -88,7 +88,7 @@ const VideoDetails = () => {
         setFrameUrl("");
         console.error("Frame fetch error", err);
       }
-      timer = setTimeout(fetchFrame, 1000);
+      timer = setTimeout(fetchFrame, 200);
     };
     fetchFrame();
 
@@ -125,6 +125,7 @@ const VideoDetails = () => {
 
   const chartOptions = {
     responsive: true,
+    animation: false,
     plugins: {
       legend: { display: true, labels: { color: "#C9C9C9" } },
       tooltip: { mode: "index", intersect: false },
@@ -159,11 +160,11 @@ const VideoDetails = () => {
               src={frameUrl}
               alt="Live Frame"
               style={{
-                width: "100%",
-                maxWidth: "720px", // Adjust as needed
-                minHeight: "400px",
-                background: "#111",
+                width: "100%",       // scale with window width
+                height: "auto",      // keep aspect ratio
                 display: "block",
+                objectFit: "contain", // do not crop, just fit
+                background: "#111",
               }}
             />
             <Box
