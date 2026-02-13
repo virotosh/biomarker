@@ -9,6 +9,8 @@ const url = "http://193.166.24.186:8003/predict";
 const getBioMarker = async (req, res) => {
     const { index } = req.body;
     try {
+        console.log(index);
+        console.log('getBioMarker');
         axios.get('http://172.22.8.62:8000/stream/plux_processed_eda', {
             params: {
               limit: 500
@@ -26,6 +28,7 @@ const getBioMarker = async (req, res) => {
           .catch(error => {
             console.error(error);
           });
+        console.log('plux_processed_eda');
 
         axios.get('http://172.22.8.62:8000/stream/plux_processed_ppg', {
             params: {
@@ -45,13 +48,14 @@ const getBioMarker = async (req, res) => {
                   [Array(512).fill(0), Array(512).fill(0), Array(512).fill(0), Array(512).fill(0), hrs, edas, Array(512).fill(0)]
                 ]
               };
-            //console.log(params['empatica'][0][4]);
+            console.log('plux_processed_ppg');
             axios.post(url, params)
             .then(response => {
                 // Replace all single quotes with double quotes
                 resData = response.data.replace(/"/g, '').replace(/'/g, '"');
                 const d = JSON.parse(resData);
                 res.status(200).json(d);
+                console.log(d);
                 //res.status(200).json({'stress':fakeMarkers[index]['stress'],'mental_workload':fakeMarkers[index]['mental_workload']});
             })
             .catch(error => {

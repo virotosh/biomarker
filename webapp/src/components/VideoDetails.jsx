@@ -24,21 +24,22 @@ Chart.register(
   Legend
 );
 
+const PHYSIO_API_URL = process.env.REACT_APP_PHYSIO_API_URL;
+const FRAME_API_URL = process.env.REACT_APP_FRAME_API_URL;
+
 const VideoDetails = () => {
   const [index, setIndex] = useState(0);
-  const [physio, setPhysio] = useState({});
   const [physiotmp, setPhysiotmp] = useState(Array.from({ length: 50 }, () => ({ stress: 0.0, mental_workload: 0.0 })));
   const [frameUrl, setFrameUrl] = useState(""); // store object URL for img
-
+  
   // Poll physio as before (no change)
   const getData = async (e) => {
     try {
       const res = await axios.post(
-        "http://193.166.24.186:5000/api/physio",
+        PHYSIO_API_URL,
         { index: e }
       );
       if (res.status === 200) {
-        setPhysio(res.data);
         setPhysiotmp(prev => {
           const updated = [...prev, res.data];
           return updated.slice(-50);
@@ -54,19 +55,21 @@ const VideoDetails = () => {
     getData(0);
   }, []);
 
-  // 1s polling for frame
+  // 100ms polling for frame
   useEffect(() => {
     let isMounted = true;
     let timer;
     let lastObjectUrl = null;
+    let callCount = 0;
 
     const fetchFrame = async () => {
       try {
-        const res = await axios.get("http://172.22.8.62:8000/stream/video_display1/frame", {
+        const res = await axios.get(FRAME_API_URL, {
           responseType: "blob",
           headers: {
             // Optionally, you can add cache busting:
             // 'Cache-Control': 'no-cache'
+            //'Access-Control-Request-Private-Network': 'true'
           },
         });
         if(!isMounted) return;
@@ -81,7 +84,12 @@ const VideoDetails = () => {
         }
         lastObjectUrl = objectUrl;
 
-        getData(0);
+        // Only call getData(0) every **other** iteration
+        if (callCount % 10 === 0) {
+          getData(callCount);
+        }
+        callCount++;
+
       } catch (err) {
         // Could add retry logic here if needed
         // Optionally clear image on error:
