@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useRef } from "react";
 import { Typography, Box, Card, CardContent, Stack } from "@mui/material";
 import axios from "axios";
 import { Line } from "react-chartjs-2";
@@ -30,79 +30,67 @@ const FRAME_API_URL = process.env.REACT_APP_FRAME_API_URL;
 const VideoDetails = () => {
   const [physio, setPhysio] = useState(Array.from({ length: 50 }, () => ({ stress: 0.0, mental_workload: 0.0 })));
   const [frameUrl, setFrameUrl] = useState(""); // store object URL for img
-  
-  // Poll physio as before (no change)
-  const getData = async (e) => {
-    try {
-      const res = await axios.post(
-        PHYSIO_API_URL,
-        { index: e }
-      );
-      if (res.status === 200) {
-        setPhysio(prev => {
-          const updated = [...prev, res.data];
-          return updated.slice(-50);
-        });
-        // console.log(res.data);
-      }
-    } catch (err) {
-      console.error(err);
-    }
-  }
+  const lastFrameObjectUrl = useRef(null);
 
-  useEffect(() => {
-    getData(0);
-  }, []);
-
-  // 100ms polling for frame
+  // PHYSIO: 1000ms polling
   useEffect(() => {
     let isMounted = true;
-    let timer;
-    let lastObjectUrl = null;
-    let callCount = 0;
+    let index = 0;
+    const getData = async () => {
+      try {
+        const res = await axios.post(PHYSIO_API_URL, { index: index++ });
+        if (!isMounted) return;
+        if (res.status === 200) {
+          setPhysio(prev => {
+            const updated = [...prev, res.data];
+            return updated.slice(-50);
+          });
+        }
+      } catch (err) {
+        console.error("Physio fetch error", err);
+      }
+    };
+    // First call
+    getData();
+    const interval = setInterval(getData, 1000);
+    return () => {
+      isMounted = false;
+      clearInterval(interval);
+    };
+  }, []);
 
+  // FRAME: 100ms polling
+  useEffect(() => {
+    let isMounted = true;
+    let timerId;
     const fetchFrame = async () => {
       try {
         const res = await axios.get(FRAME_API_URL, {
           responseType: "blob",
-          headers: {
-            // Optionally, you can add cache busting:
-            // 'Cache-Control': 'no-cache'
-            //'Access-Control-Request-Private-Network': 'true'
-          },
         });
-        if(!isMounted) return;
-        // Create blob URL
-        const objectUrl = URL.createObjectURL(res.data);
+        if (!isMounted) return;
 
+        const objectUrl = URL.createObjectURL(res.data);
         setFrameUrl(objectUrl);
 
-        // Clean up old blob url
-        if (lastObjectUrl) {
-          URL.revokeObjectURL(lastObjectUrl);
+        // Clean up old URL
+        if (lastFrameObjectUrl.current) {
+          URL.revokeObjectURL(lastFrameObjectUrl.current);
         }
-        lastObjectUrl = objectUrl;
-
-        // Only call getData(0) every **other** iteration
-        if (callCount % 5 === 0) {
-          getData(callCount);
-        }
-        callCount++;
-
+        lastFrameObjectUrl.current = objectUrl;
       } catch (err) {
-        // Could add retry logic here if needed
-        // Optionally clear image on error:
         setFrameUrl("");
         console.error("Frame fetch error", err);
       }
-      timer = setTimeout(fetchFrame, 100);
+      // Schedule next fetch
+      timerId = setTimeout(fetchFrame, 100);
     };
-    fetchFrame();
 
+    fetchFrame();
     return () => {
       isMounted = false;
-      if (timer) clearTimeout(timer);
-      if (lastObjectUrl) URL.revokeObjectURL(lastObjectUrl);
+      if (timerId) clearTimeout(timerId);
+      if (lastFrameObjectUrl.current) URL.revokeObjectURL(lastFrameObjectUrl.current);
     };
   }, []);
 
@@ -167,28 +155,28 @@ const VideoDetails = () => {
               src={frameUrl}
               alt="Live Frame"
               style={{
-                width: "100%",       // scale with window width
-                height: "auto",      // keep aspect ratio
+                width: "100%",
+                height: "auto",
                 display: "block",
-                objectFit: "contain", // do not crop, just fit
+                objectFit: "contain",
                 background: "#111",
               }}
             />
             <Box
-                sx={{
-                  position: "absolute",
-                  top: 16,
-                  right: 16,
-                  width: 320,
-                  height: 180,
-                  bgcolor: "rgba(30,30,30,0.75)",
-                  borderRadius: 2,
-                  boxShadow: 3,
-                  zIndex: 2,
-                  p: 1,
-                  pointerEvents: "auto"
-                }}
-              >
+              sx={{
+                position: "absolute",
+                top: 16,
+                right: 16,
+                width: 320,
+                height: 180,
+                bgcolor: "rgba(30,30,30,0.75)",
+                borderRadius: 2,
+                boxShadow: 3,
+                zIndex: 2,
+                p: 1,
+                pointerEvents: "auto"
+              }}
+            >
               <Line data={chartData} options={chartOptions} />
             </Box>
           </Box>

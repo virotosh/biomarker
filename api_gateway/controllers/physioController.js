@@ -9,7 +9,7 @@ const url = "http://193.166.24.186:8003/predict";
 const getBioMarker = async (req, res) => {
     const { index } = req.body;
     try {
-        console.log(index);
+        //console.log(index);
         //console.log('getBioMarker');
         axios.get('http://172.22.8.62:8000/stream/plux_processed_eda', {
             params: {
