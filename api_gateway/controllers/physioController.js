@@ -10,7 +10,7 @@ const getBioMarker = async (req, res) => {
     const { index } = req.body;
     try {
         console.log(index);
-        console.log('getBioMarker');
+        //console.log('getBioMarker');
         axios.get('http://172.22.8.62:8000/stream/plux_processed_eda', {
             params: {
               limit: 500
@@ -28,7 +28,7 @@ const getBioMarker = async (req, res) => {
           .catch(error => {
             console.error(error);
           });
-        console.log('plux_processed_eda');
+        //console.log('plux_processed_eda');
 
         axios.get('http://172.22.8.62:8000/stream/plux_processed_ppg', {
             params: {
@@ -48,7 +48,7 @@ const getBioMarker = async (req, res) => {
                   [Array(512).fill(0), Array(512).fill(0), Array(512).fill(0), Array(512).fill(0), hrs, edas, Array(512).fill(0)]
                 ]
               };
-            console.log('plux_processed_ppg');
+            //console.log('plux_processed_ppg');
             axios.post(url, params)
             .then(response => {
                 // Replace all single quotes with double quotes

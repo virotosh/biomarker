@@ -28,8 +28,7 @@ const PHYSIO_API_URL = process.env.REACT_APP_PHYSIO_API_URL;
 const FRAME_API_URL = process.env.REACT_APP_FRAME_API_URL;
 
 const VideoDetails = () => {
-  const [index, setIndex] = useState(0);
-  const [physiotmp, setPhysiotmp] = useState(Array.from({ length: 50 }, () => ({ stress: 0.0, mental_workload: 0.0 })));
+  const [physio, setPhysio] = useState(Array.from({ length: 50 }, () => ({ stress: 0.0, mental_workload: 0.0 })));
   const [frameUrl, setFrameUrl] = useState(""); // store object URL for img
   
   // Poll physio as before (no change)
@@ -40,7 +39,7 @@ const VideoDetails = () => {
         { index: e }
       );
       if (res.status === 200) {
-        setPhysiotmp(prev => {
+        setPhysio(prev => {
           const updated = [...prev, res.data];
           return updated.slice(-50);
         });
@@ -85,7 +84,7 @@ const VideoDetails = () => {
         lastObjectUrl = objectUrl;
 
         // Only call getData(0) every **other** iteration
-        if (callCount % 10 === 0) {
+        if (callCount % 5 === 0) {
           getData(callCount);
         }
         callCount++;
@@ -108,11 +107,11 @@ const VideoDetails = () => {
   }, []);
 
   const chartData = {
-    labels: physiotmp.map((_, i) => i),
+    labels: physio.map((_, i) => i),
     datasets: [
       {
         label: "Stress",
-        data: physiotmp.map(item => item.stress),
+        data: physio.map(item => item.stress),
         borderColor: "#FFD700",
         backgroundColor: "rgba(255, 215, 0, 0.3)",
         tension: 0.3,
@@ -121,7 +120,7 @@ const VideoDetails = () => {
       },
       {
         label: "Mental Workload",
-        data: physiotmp.map(item => item.mental_workload),
+        data: physio.map(item => item.mental_workload),
         borderColor: "#169C6B",
         backgroundColor: "#169C6B88",
         tension: 0.3,
